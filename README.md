@@ -16,4 +16,3 @@ git clone git@github.com:mskelton/go-template.git
 cd go-template
 go install .
 ```
-
