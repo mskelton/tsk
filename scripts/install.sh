@@ -4,7 +4,7 @@ set -eu
 printf '\n'
 
 # Name of the project, customize the repo name or display name as necessary
-BINARY_NAME=go-template
+BINARY_NAME=tsk
 REPO_NAME=
 DISPLAY_NAME=
 

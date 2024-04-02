@@ -1,4 +1,4 @@
-module github.com/mskelton/go-template
+module github.com/mskelton/tsk
 
 go 1.21
 

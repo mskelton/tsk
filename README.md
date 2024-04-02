@@ -1,18 +1,18 @@
-# go-template
+# tsk
 
 ## Installation
 
-You can install go-template by running the install script which will download
-the [latest release](https://github.com/mskelton/go-template/releases/latest).
+You can install tsk by running the install script which will download
+the [latest release](https://github.com/mskelton/tsk/releases/latest).
 
 ```bash
-curl -LSfs https://mskelton.dev/go-template/install | sh
+curl -LSfs https://mskelton.dev/tsk/install | sh
 ```
 
 Or you can build from source.
 
 ```bash
-git clone git@github.com:mskelton/go-template.git
-cd go-template
+git clone git@github.com:mskelton/tsk.git
+cd tsk
 go install .
 ```

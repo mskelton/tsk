@@ -2,7 +2,7 @@
 
 set -eu
 
-package=go-template
+package=tsk
 platforms=(
 	"windows/amd64"
 	"windows/arm64"

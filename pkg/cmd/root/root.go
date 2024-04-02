@@ -5,8 +5,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/mskelton/go-template/internal/utils"
-	"github.com/mskelton/go-template/pkg/cmd/id"
+	"github.com/mskelton/tsk/internal/utils"
+	"github.com/mskelton/tsk/pkg/cmd/id"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -14,8 +14,8 @@ import (
 var cfgFile string
 
 var rootCmd = &cobra.Command{
-	Use:   "go-template",
-	Short: "Create a new go-template",
+	Use:   "tsk",
+	Short: "Create a new tsk",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id := utils.GenerateId()
@@ -36,7 +36,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/go-template/config.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/tsk/config.yaml)")
 
 	rootCmd.AddCommand(id.IdCmd)
 }
@@ -51,7 +51,7 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		viper.AddConfigPath(path.Join(home, ".config", "go-template"))
+		viper.AddConfigPath(path.Join(home, ".config", "tsk"))
 		viper.SetConfigName("config")
 		viper.SetConfigType("yaml")
 	}

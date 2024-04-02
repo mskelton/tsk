@@ -2,7 +2,7 @@ package id
 
 import (
 	"github.com/MakeNowJust/heredoc"
-	"github.com/mskelton/go-template/internal/utils"
+	"github.com/mskelton/tsk/internal/utils"
 	"github.com/spf13/cobra"
 )
 
