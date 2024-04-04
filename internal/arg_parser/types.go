@@ -1,4 +1,4 @@
-package parser
+package arg_parser
 
 import (
 	"strconv"
@@ -15,7 +15,7 @@ const (
 type Scope string
 
 const (
-	Priority Scope = "priority"
+	ScopePriority Scope = "priority"
 )
 
 type Command string
@@ -98,7 +98,7 @@ func commandAcceptsArgs(command Command) bool {
 	}
 }
 
-func ConfigFromString(str string) (Config, bool) {
+func ConfigFromStr(str string) (Config, bool) {
 	parts := strings.Split(str, "=")
 
 	// Scoped arguments are only valid if they have exactly 2 parts. This

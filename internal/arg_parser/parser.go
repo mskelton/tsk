@@ -1,4 +1,4 @@
-package parser
+package arg_parser
 
 type ParseStage int
 
@@ -41,7 +41,7 @@ func (p *ArgParser) Parse(args []string) ParseContext {
 		if stage == ConfigStage {
 			// If the argument is a config override (e.g., `bulk=3`), parse
 			// it and add it to the config.
-			if config, ok := ConfigFromString(arg); ok {
+			if config, ok := ConfigFromStr(arg); ok {
 				ctx.Config = append(ctx.Config, config)
 				continue
 			}

@@ -1,4 +1,4 @@
-package parser
+package arg_parser
 
 import (
 	"reflect"

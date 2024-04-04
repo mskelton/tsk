@@ -1,10 +1,10 @@
-package parser
+package arg_parser
 
 import "strings"
 
 func scopeFromStr(str string) (Scope, bool) {
 	switch Scope(str) {
-	case Priority:
+	case ScopePriority:
 		return Scope(str), true
 	default:
 		return "", false
