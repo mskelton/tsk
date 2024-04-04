@@ -9,8 +9,8 @@ import (
 	"github.com/mskelton/tsk/internal/utils"
 )
 
-func Start(ctx arg_parser.ParseContext) {
-	requireFilters(ctx, "start")
+func Stop(ctx arg_parser.ParseContext) {
+	requireFilters(ctx, "stop")
 
 	filters := buildFilters(ctx)
 	count, err := storage.Count(filters)
@@ -28,7 +28,7 @@ func Start(ctx arg_parser.ParseContext) {
 	}
 
 	fmt.Printf(
-		"This command will start %d %s\n",
+		"This command will stop %d %s\n",
 		count,
 		utils.Pluralize(count, "task", "tasks"),
 	)
@@ -39,7 +39,7 @@ func Start(ctx arg_parser.ParseContext) {
 
 	edits := []storage.QueryEdit{{
 		Path:  "status",
-		Value: string(storage.TaskStatusActive),
+		Value: string(storage.TaskStatusPending),
 	}}
 
 	ids, err := storage.Edit(filters, edits)
@@ -49,6 +49,6 @@ func Start(ctx arg_parser.ParseContext) {
 	}
 
 	for _, id := range ids {
-		fmt.Printf("Started task %d\n", id)
+		fmt.Printf("Stoped task %d\n", id)
 	}
 }

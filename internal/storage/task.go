@@ -3,8 +3,12 @@ package storage
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"log"
+	"os"
 	"time"
 
+	"github.com/mskelton/tsk/internal/sql_builder"
 	"github.com/mskelton/tsk/internal/utils"
 )
 
@@ -54,7 +58,7 @@ func NewTask() Task {
 	}
 }
 
-func ListTasks() ([]Task, utils.CLIError) {
+func ListTasks(filters []sql_builder.Filter) ([]Task, utils.CLIError) {
 	conn, err := connect()
 	if err != nil {
 		return nil, utils.CLIError{
@@ -63,23 +67,25 @@ func ListTasks() ([]Task, utils.CLIError) {
 		}
 	}
 
-	// let mut sql_builder = Builder::new();
-	// sql_builder
-	//     .select("tasks.id, tasks.template_id, assignments.id, tasks.data")
-	//     .from("tasks")
-	//     .join("assignments", "tasks.id = assignments.task_id")
-	//     .filter("tasks.data ->> '$.status' != 'done'");
-	//
-	// filters.iter().for_each(|f| {
-	//     sql_builder.filter(&f.to_sql());
-	// });
-	//
-	// let sql = sql_builder.sql();
-	// debug!("{}", &sql);
+	builder := sql_builder.New().
+		Select("tasks.id, tasks.template_id, assignments.id, tasks.data").
+		From("tasks").
+		Join("assignments", "tasks.id = assignments.task_id").
+		Filter(sql_builder.Filter{
+			Key:      "tasks.data ->> '$.status'",
+			Operator: sql_builder.Neq,
+			Value:    "'done'",
+		})
 
-	query := "SELECT tasks.id, tasks.template_id, assignments.id, tasks.data FROM tasks JOIN assignments ON tasks.id = assignments.task_id WHERE tasks.data ->> '$.status' != 'done'"
+	for _, filter := range filters {
+		builder.Filter(filter)
+	}
 
-	rows, err := conn.Query(query)
+	if os.Getenv("DEBUG") != "" {
+		log.Println(builder.SQL())
+	}
+
+	rows, err := conn.Query(builder.SQL())
 	if err != nil {
 		return nil, utils.CLIError{
 			Code:    utils.ErrorCodeQueryError,
@@ -186,4 +192,135 @@ func Add(task Task) (int64, utils.CLIError) {
 	// Return the id of the newly created task. Thankfully SQLite handles this
 	// automatically with `LastInsertId()` since we are using a numeric id.
 	return id, utils.CLIError{}
+}
+
+func Count(filters []sql_builder.Filter) (int, utils.CLIError) {
+	conn, err := connect()
+	if err != nil {
+		return 0, utils.CLIError{
+			Code: utils.ErrorCodeQueryError,
+			Err:  err,
+		}
+	}
+
+	builder := sql_builder.New().
+		Select("count(tasks.id)").
+		From("tasks").
+		Join("assignments", "tasks.id = assignments.task_id")
+
+	for _, filter := range filters {
+		builder.Filter(filter)
+	}
+
+	debug := os.Getenv("DEBUG") != ""
+	if debug {
+		log.Println(builder.SQL())
+	}
+
+	row := conn.QueryRow(builder.SQL())
+	if row.Err() != nil {
+		return 0, utils.CLIError{
+			Code:    utils.ErrorCodeQueryError,
+			Message: "Failed to count tasks",
+			Err:     row.Err(),
+		}
+	}
+
+	var count int
+	err = row.Scan(&count)
+	if row.Err() != nil {
+		return 0, utils.CLIError{
+			Code:    utils.ErrorCodeQueryError,
+			Message: "Failed to count tasks",
+			Err:     err,
+		}
+	}
+
+	return count, utils.CLIError{}
+}
+
+func getIds(conn *sql.DB, filters []sql_builder.Filter) ([]int, utils.CLIError) {
+	builder := sql_builder.New().
+		Select("assignments.id").
+		From("tasks").
+		Join("assignments", "tasks.id = assignments.task_id")
+
+	for _, filter := range filters {
+		builder.Filter(filter)
+	}
+
+	debug := os.Getenv("DEBUG") != ""
+	if debug {
+		log.Println(builder.SQL())
+	}
+
+	res, err := conn.Query(builder.SQL())
+	if err != nil {
+		return nil, utils.CLIError{
+			Code:    utils.ErrorCodeQueryError,
+			Message: "Failed to get task ids",
+			Err:     err,
+		}
+	}
+
+	var ids []int
+	for res.Next() {
+		var id int
+		err = res.Scan(&id)
+
+		if err != nil {
+			return nil, utils.CLIError{
+				Code:    utils.ErrorCodeQueryError,
+				Message: "Failed to get task id",
+				Err:     err,
+			}
+		}
+
+		ids = append(ids, id)
+	}
+
+	return ids, utils.CLIError{}
+}
+
+type QueryEdit struct {
+	Path  string
+	Value string
+}
+
+func Edit(filters []sql_builder.Filter, edits []QueryEdit) ([]int, utils.CLIError) {
+	conn, err := connect()
+	if err != nil {
+		return nil, utils.CLIError{
+			Code: utils.ErrorCodeQueryError,
+			Err:  err,
+		}
+	}
+
+	builder := sql_builder.New().Update("tasks")
+	var params []any
+
+	for _, edit := range edits {
+		params = append(params, edit.Value)
+		builder.Set(fmt.Sprintf("data = json_set(data, '$.%s', ?)", edit.Path))
+	}
+
+	for _, filter := range filters {
+		builder.Filter(filter)
+	}
+
+	debug := os.Getenv("DEBUG") != ""
+	if debug {
+		log.Println(builder.SQL())
+	}
+
+	_, err = conn.Exec(builder.SQL(), params...)
+	if err != nil {
+		return nil, utils.CLIError{
+			Code:    utils.ErrorCodeQueryError,
+			Message: "Failed to edit tasks",
+			Err:     err,
+		}
+	}
+
+	return getIds(conn, filters)
 }

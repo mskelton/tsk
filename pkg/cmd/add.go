@@ -9,10 +9,10 @@ import (
 	"github.com/mskelton/tsk/internal/utils"
 )
 
-func Add(context arg_parser.ParseContext) {
+func Add(ctx arg_parser.ParseContext) {
 	task := storage.NewTask()
 
-	for _, arg := range context.Args {
+	for _, arg := range ctx.Args {
 		switch v := arg.(type) {
 		case arg_parser.TextArg:
 			task.Title = v.Text

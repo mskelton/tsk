@@ -15,10 +15,10 @@ func Pluralize(count int, singular string, plural string) string {
 	}
 }
 
-func IsBulk(context arg_parser.ParseContext, count int) bool {
+func IsBulk(ctx arg_parser.ParseContext, count int) bool {
 	size := 4
 
-	for _, config := range context.Config {
+	for _, config := range ctx.Config {
 		if bulk, ok := config.(arg_parser.BulkConfig); ok {
 			size = bulk.Size
 		}

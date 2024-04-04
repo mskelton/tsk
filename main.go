@@ -23,10 +23,10 @@ func main() {
 	// 	cmd.Edit(context)
 	case arg_parser.Show:
 		cmd.Show(context)
-	// case arg_parser.Start:
-	// 	cmd.Start(context)
-	// case arg_parser.Stop:
-	// 	cmd.Stop(context)
+	case arg_parser.Start:
+		cmd.Start(context)
+	case arg_parser.Stop:
+		cmd.Stop(context)
 	// case arg_parser.Get:
 	// 	cmd.Get(context)
 	// case arg_parser.Delete:
