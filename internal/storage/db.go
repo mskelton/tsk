@@ -3,7 +3,6 @@ package storage
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -35,12 +34,12 @@ func getDBPath() (string, error) {
 func connect() (*sql.DB, error) {
 	path, err := getDBPath()
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Invalid database path")
 	}
 
 	conn, err := sql.Open("sqlite3", path)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("Failed to connect to database")
 	}
 
 	query := `
@@ -63,7 +62,7 @@ func connect() (*sql.DB, error) {
 
 	_, err = conn.Exec(query)
 	if err != nil {
-		return nil, fmt.Errorf("Migration failed: %w", err)
+		return nil, errors.New("Migration failed")
 	}
 
 	return conn, nil

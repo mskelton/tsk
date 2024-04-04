@@ -6,24 +6,23 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/mskelton/tsk/internal/utils"
 )
 
-func Error(message string, err error) {
-	fmt.Println("Error: ", err)
-	// let code = format!("[{}]", error.code());
-	// eprintln!("{}: {}", code.red().bold(), message);
-	//
-	// let message = match error {
-	//     Error::Custom(message) => message.to_string(),
-	//     Error::MigrationFailure(message) => format!("Migration failure: {}", message),
-	//     Error::QueryError(message) => format!("Query error: {}", message),
-	//     Error::Serialize(message) => message,
-	//     Error::Deserialize(message) => message,
-	//     _ => "".to_string(),
-	// };
+func Error(error utils.CLIError) {
+	// If no message is provided, use the error message
+	message := error.Message
+	if message == "" && error.Err != nil {
+		message = error.Err.Error()
+	}
 
-	if message != "" {
-		color.New().Add(color.Faint).Println(message)
+	code := fmt.Sprintf("[%s]", error.Code)
+	redBold := color.New(color.FgRed, color.Bold).SprintFunc()
+	fmt.Fprintf(os.Stderr, "%s: %s\n", redBold(code), error.Message)
+
+	// If there is a detail message, print it in faint color
+	if error.Detail != "" {
+		color.New().Add(color.Faint).Println(error.Detail)
 	}
 
 	os.Exit(1)

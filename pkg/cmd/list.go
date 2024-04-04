@@ -15,8 +15,8 @@ func List(ctx arg_parser.ParseContext) {
 	// filters := buildFilters(context)
 
 	tasks, err := storage.ListTasks()
-	if err != nil {
-		printer.Error("Failed to list tasks", err)
+	if err.Code != "" {
+		printer.Error(err)
 	}
 
 	if len(tasks) == 0 {

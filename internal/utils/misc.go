@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/mskelton/tsk/internal/arg_parser"
-	"github.com/mskelton/tsk/internal/printer"
 )
 
 func Pluralize(count int, singular string, plural string) string {
@@ -26,15 +25,6 @@ func IsBulk(context arg_parser.ParseContext, count int) bool {
 	}
 
 	return count >= size
-}
-
-func RequireFilters(context arg_parser.ParseContext, command string) {
-	if len(context.Filters) == 0 {
-		printer.Error(
-			"The %s command requires filters",
-			nil,
-		)
-	}
 }
 
 const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

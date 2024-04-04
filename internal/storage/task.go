@@ -54,10 +54,13 @@ func NewTask() Task {
 	}
 }
 
-func ListTasks() ([]Task, error) {
+func ListTasks() ([]Task, utils.CLIError) {
 	conn, err := connect()
 	if err != nil {
-		return nil, err
+		return nil, utils.CLIError{
+			Code: utils.ErrorCodeQueryError,
+			Err:  err,
+		}
 	}
 
 	// let mut sql_builder = Builder::new();
@@ -76,14 +79,13 @@ func ListTasks() ([]Task, error) {
 
 	query := "SELECT tasks.id, tasks.template_id, assignments.id, tasks.data FROM tasks JOIN assignments ON tasks.id = assignments.task_id WHERE tasks.data ->> '$.status' != 'done'"
 
-	stmt, err := conn.Prepare(query)
+	rows, err := conn.Query(query)
 	if err != nil {
-		return nil, err
-	}
-
-	rows, err := stmt.Query()
-	if err != nil {
-		return nil, err
+		return nil, utils.CLIError{
+			Code:    utils.ErrorCodeQueryError,
+			Message: "Failed to list tasks",
+			Err:     err,
+		}
 	}
 
 	var tasks []Task
@@ -96,13 +98,19 @@ func ListTasks() ([]Task, error) {
 
 		err = rows.Scan(&taskId, &templateId, &shortId, &data)
 		if err != nil {
-			return nil, err
+			return nil, utils.CLIError{
+				Code:    utils.ErrorCodeQueryError,
+				Message: "Invalid task data",
+			}
 		}
 
 		var task Task
 		err = json.Unmarshal(data, &task)
 		if err != nil {
-			return nil, err
+			return nil, utils.CLIError{
+				Code: utils.ErrorCodeDeserialize,
+				Err:  err,
+			}
 		}
 
 		task.Id = taskId
@@ -118,35 +126,64 @@ func ListTasks() ([]Task, error) {
 		tasks = append(tasks, task)
 	}
 
-	return tasks, nil
+	return tasks, utils.CLIError{}
 }
 
-func Add(task Task) (int64, error) {
+func Add(task Task) (int64, utils.CLIError) {
 	data, err := json.Marshal(task)
 	if err != nil {
-		return 0, err
+		return 0, utils.CLIError{
+			Code:    utils.ErrorCodeSerialize,
+			Message: "Failed to serialize task",
+			Err:     err,
+		}
 	}
 
 	conn, err := connect()
 	if err != nil {
-		return 0, err
+		return 0, utils.CLIError{
+			Code: utils.ErrorCodeQueryError,
+			Err:  err,
+		}
 	}
 
-	conn.Exec(
+	_, err = conn.Exec(
 		"INSERT INTO tasks (id, template_id, data) VALUES (?, ?, ?)",
 		task.Id,
 		task.TemplateId,
 		data,
 	)
+	if err != nil {
+		return 0, utils.CLIError{
+			Code:    utils.ErrorCodeQueryError,
+			Message: "Failed to add task",
+			Err:     err,
+		}
+	}
 
 	// Add an id assignment for the newly created task
-	conn.Exec(
+	res, err := conn.Exec(
 		"INSERT INTO assignments VALUES ((select max(id) + 1 from assignments), ?)",
 		task.Id,
 	)
+	if err != nil {
+		return 0, utils.CLIError{
+			Code:    utils.ErrorCodeQueryError,
+			Message: "Failed to add task assignment",
+			Err:     err,
+		}
+	}
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, utils.CLIError{
+			Code:    utils.ErrorCodeQueryError,
+			Message: "Failed to get last insert id",
+			Err:     err,
+		}
+	}
 
 	// Return the id of the newly created task. Thankfully SQLite handles this
-	// automatically with `last_insert_rowid()` since we are using a numeric id.
-	// return conn.last_insert_rowid(), nil
-	return 0, nil
+	// automatically with `LastInsertId()` since we are using a numeric id.
+	return id, utils.CLIError{}
 }
