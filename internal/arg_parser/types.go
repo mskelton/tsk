@@ -84,6 +84,8 @@ func commandFromStr(str string) (Command, bool) {
 	switch Command(str) {
 	case List, Add, Done, Edit, Show, Start, Stop, Get, Delete, Help, Version:
 		return Command(str), true
+	case "ls":
+		return List, true
 	default:
 		return "", false
 	}

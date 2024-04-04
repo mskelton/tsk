@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/mattn/go-runewidth"
 )
 
 type Row struct {
@@ -18,12 +19,8 @@ type Table struct {
 }
 
 // Special implementation of string padding to account for unicode string width
-func pad(str string, width int) string {
-	// length := UnicodeWidthStr::width(s.as_str());
-	// length := len(str)
-	// padding := width - length
-	formatStr := fmt.Sprintf("%%-%ds", width)
-	return fmt.Sprintf(formatStr, str)
+func pad(str string, w int) string {
+	return str + strings.Repeat(" ", w-runewidth.StringWidth(str))
 }
 
 func (table *Table) Print() {
@@ -33,8 +30,7 @@ func (table *Table) Print() {
 	// Find the maximum width of each column
 	for _, row := range table.Rows {
 		for i, cell := range row.Cells {
-			// length := UnicodeWidthStr::width(cell)
-			length := len(cell)
+			length := runewidth.StringWidth(cell)
 			widths[i] = max(widths[i], length)
 		}
 	}
