@@ -17,24 +17,24 @@ func main() {
 		cmd.List(context)
 	case arg_parser.Add:
 		cmd.Add(context)
-	// case arg_parser.Done:
-	// 	cmd.Done(context)
-	// case arg_parser.Edit:
-	// 	cmd.Edit(context)
+	case arg_parser.Done:
+		cmd.Done(context)
+	case arg_parser.Edit:
+		cmd.Edit(context)
 	case arg_parser.Show:
 		cmd.Show(context)
 	case arg_parser.Start:
 		cmd.Start(context)
 	case arg_parser.Stop:
 		cmd.Stop(context)
-	// case arg_parser.Get:
-	// 	cmd.Get(context)
-	// case arg_parser.Delete:
-	// 	cmd.Delete(context)
-	// case arg_parser.Help:
-	// 	cmd.Help()
-	// case arg_parser.Version:
-	// 	cmd.Version()
+	case arg_parser.Get:
+		cmd.Get(context)
+	case arg_parser.Delete:
+		cmd.Delete(context)
+	case arg_parser.Help:
+		cmd.Help()
+	case arg_parser.Version:
+		cmd.Version()
 	default:
 		var ids []int
 
