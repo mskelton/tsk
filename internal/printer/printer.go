@@ -16,9 +16,7 @@ func Error(error utils.CLIError) {
 		message = error.Err.Error()
 	}
 
-	code := fmt.Sprintf("[%s]", error.Code)
-	redBold := color.New(color.FgRed, color.Bold).SprintFunc()
-	fmt.Fprintf(os.Stderr, "%s: %s\n", redBold(code), error.Message)
+	fmt.Fprintf(os.Stderr, "%s\n", error.Message)
 
 	// If there is a detail message, print it in faint color
 	if error.Detail != "" {

@@ -38,6 +38,11 @@ func (b *Builder) Update(table string) *Builder {
 	return b
 }
 
+func (b *Builder) Delete(table string) *Builder {
+	b.query += "delete from " + table
+	return b
+}
+
 func (b *Builder) From(table string) *Builder {
 	b.query += " from " + table
 	return b

@@ -14,7 +14,7 @@ import (
 func List(ctx arg_parser.ParseContext) {
 	filters := buildFilters(ctx)
 	tasks, err := storage.ListTasks(filters)
-	if err.Code != "" {
+	if err.Message != "" {
 		printer.Error(err)
 	}
 

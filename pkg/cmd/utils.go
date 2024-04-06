@@ -14,7 +14,6 @@ import (
 func requireFilters(ctx arg_parser.ParseContext, command string) {
 	if len(ctx.Filters) == 0 {
 		printer.Error(utils.CLIError{
-			Code:    utils.ErrorCodeInvalidArgs,
 			Message: fmt.Sprintf("The %s command requires filters", command),
 		})
 	}

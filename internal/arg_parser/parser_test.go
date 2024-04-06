@@ -130,7 +130,7 @@ func TestMultipleFiltersCommand(t *testing.T) {
 		Command: Delete,
 		Filters: []Filter{
 			TagFilter{Operator: Include, Tag: "work"},
-			ScopedFilter{Scope: Priority, Value: "foo"},
+			ScopedFilter{Scope: ScopePriority, Value: "foo"},
 		},
 		Args: []Arg{},
 	}
@@ -152,8 +152,8 @@ func TestScopeArgs(t *testing.T) {
 			IdFilter{Ids: []int{11}},
 		},
 		Args: []Arg{
-			ScopedArg{Scope: Priority, Value: ""},
-			ScopedArg{Scope: Priority, Value: "H"},
+			ScopedArg{Scope: ScopePriority, Value: ""},
+			ScopedArg{Scope: ScopePriority, Value: "H"},
 		},
 	}
 
@@ -174,7 +174,7 @@ func TestIgnoresInvalidScopeArgs(t *testing.T) {
 			IdFilter{Ids: []int{12}},
 		},
 		Args: []Arg{
-			ScopedArg{Scope: Priority, Value: "H"},
+			ScopedArg{Scope: ScopePriority, Value: "H"},
 			TextArg{Text: "foo:bar"},
 		},
 	}
@@ -240,12 +240,12 @@ func TestComplexCommand(t *testing.T) {
 		Command: Edit,
 		Filters: []Filter{
 			TagFilter{Operator: Include, Tag: "work"},
-			ScopedFilter{Scope: Priority, Value: "foo"},
+			ScopedFilter{Scope: ScopePriority, Value: "foo"},
 			TextFilter{Text: "hi"},
 		},
 		Args: []Arg{
 			TagArg{Operator: Exclude, Tag: "work"},
-			ScopedArg{Scope: Priority, Value: "L"},
+			ScopedArg{Scope: ScopePriority, Value: "L"},
 			TextArg{Text: "hello world"},
 		},
 	}

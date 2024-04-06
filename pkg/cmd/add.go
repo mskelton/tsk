@@ -23,7 +23,6 @@ func Add(ctx arg_parser.ParseContext) {
 				task.Priority = v.Value
 			} else {
 				printer.Error(utils.CLIError{
-					Code:    utils.ErrorCodeInvalidArgs,
 					Message: fmt.Sprintf("Missing value for \"%s:\"", v.Scope),
 				})
 			}
@@ -32,13 +31,12 @@ func Add(ctx arg_parser.ParseContext) {
 
 	if task.Title == "" {
 		printer.Error(utils.CLIError{
-			Code:    utils.ErrorCodeInvalidArgs,
 			Message: "Missing title",
 		})
 	}
 
 	id, err := storage.Add(task)
-	if err.Code != "" {
+	if err.Message != "" {
 		printer.Error(err)
 	}
 

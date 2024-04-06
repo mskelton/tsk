@@ -14,14 +14,13 @@ func Done(ctx arg_parser.ParseContext) {
 
 	filters := buildFilters(ctx)
 	count, err := storage.Count(filters)
-	if err.Code != "" {
+	if err.Message != "" {
 		printer.Error(err)
 		return
 	}
 
 	if count == 0 {
 		printer.Error(utils.CLIError{
-			Code:    utils.ErrorCodeCustom,
 			Message: "No tasks match filters",
 		})
 		return
@@ -43,7 +42,7 @@ func Done(ctx arg_parser.ParseContext) {
 	}}
 
 	ids, err := storage.Edit(filters, edits)
-	if err.Code != "" {
+	if err.Message != "" {
 		printer.Error(err)
 		return
 	}

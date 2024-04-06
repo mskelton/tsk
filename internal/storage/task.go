@@ -62,8 +62,8 @@ func ListTasks(filters []sql_builder.Filter) ([]Task, utils.CLIError) {
 	conn, err := connect()
 	if err != nil {
 		return nil, utils.CLIError{
-			Code: utils.ErrorCodeQueryError,
-			Err:  err,
+			Message: "Failed to list tasks",
+			Err:     err,
 		}
 	}
 
@@ -88,7 +88,6 @@ func ListTasks(filters []sql_builder.Filter) ([]Task, utils.CLIError) {
 	rows, err := conn.Query(builder.SQL())
 	if err != nil {
 		return nil, utils.CLIError{
-			Code:    utils.ErrorCodeQueryError,
 			Message: "Failed to list tasks",
 			Err:     err,
 		}
@@ -105,7 +104,6 @@ func ListTasks(filters []sql_builder.Filter) ([]Task, utils.CLIError) {
 		err = rows.Scan(&taskId, &templateId, &shortId, &data)
 		if err != nil {
 			return nil, utils.CLIError{
-				Code:    utils.ErrorCodeQueryError,
 				Message: "Invalid task data",
 			}
 		}
@@ -114,8 +112,8 @@ func ListTasks(filters []sql_builder.Filter) ([]Task, utils.CLIError) {
 		err = json.Unmarshal(data, &task)
 		if err != nil {
 			return nil, utils.CLIError{
-				Code: utils.ErrorCodeDeserialize,
-				Err:  err,
+				Message: "Failed to list tasks",
+				Err:     err,
 			}
 		}
 
@@ -139,7 +137,6 @@ func Add(task Task) (int64, utils.CLIError) {
 	data, err := json.Marshal(task)
 	if err != nil {
 		return 0, utils.CLIError{
-			Code:    utils.ErrorCodeSerialize,
 			Message: "Failed to serialize task",
 			Err:     err,
 		}
@@ -148,8 +145,8 @@ func Add(task Task) (int64, utils.CLIError) {
 	conn, err := connect()
 	if err != nil {
 		return 0, utils.CLIError{
-			Code: utils.ErrorCodeQueryError,
-			Err:  err,
+			Message: "Failed to add task",
+			Err:     err,
 		}
 	}
 
@@ -161,7 +158,6 @@ func Add(task Task) (int64, utils.CLIError) {
 	)
 	if err != nil {
 		return 0, utils.CLIError{
-			Code:    utils.ErrorCodeQueryError,
 			Message: "Failed to add task",
 			Err:     err,
 		}
@@ -174,7 +170,6 @@ func Add(task Task) (int64, utils.CLIError) {
 	)
 	if err != nil {
 		return 0, utils.CLIError{
-			Code:    utils.ErrorCodeQueryError,
 			Message: "Failed to add task assignment",
 			Err:     err,
 		}
@@ -183,7 +178,6 @@ func Add(task Task) (int64, utils.CLIError) {
 	id, err := res.LastInsertId()
 	if err != nil {
 		return 0, utils.CLIError{
-			Code:    utils.ErrorCodeQueryError,
 			Message: "Failed to get last insert id",
 			Err:     err,
 		}
@@ -198,8 +192,8 @@ func Count(filters []sql_builder.Filter) (int, utils.CLIError) {
 	conn, err := connect()
 	if err != nil {
 		return 0, utils.CLIError{
-			Code: utils.ErrorCodeQueryError,
-			Err:  err,
+			Message: "Failed to count tasks",
+			Err:     err,
 		}
 	}
 
@@ -220,7 +214,6 @@ func Count(filters []sql_builder.Filter) (int, utils.CLIError) {
 	row := conn.QueryRow(builder.SQL())
 	if row.Err() != nil {
 		return 0, utils.CLIError{
-			Code:    utils.ErrorCodeQueryError,
 			Message: "Failed to count tasks",
 			Err:     row.Err(),
 		}
@@ -230,7 +223,6 @@ func Count(filters []sql_builder.Filter) (int, utils.CLIError) {
 	err = row.Scan(&count)
 	if row.Err() != nil {
 		return 0, utils.CLIError{
-			Code:    utils.ErrorCodeQueryError,
 			Message: "Failed to count tasks",
 			Err:     err,
 		}
@@ -257,7 +249,6 @@ func getIds(conn *sql.DB, filters []sql_builder.Filter) ([]int, utils.CLIError) 
 	res, err := conn.Query(builder.SQL())
 	if err != nil {
 		return nil, utils.CLIError{
-			Code:    utils.ErrorCodeQueryError,
 			Message: "Failed to get task ids",
 			Err:     err,
 		}
@@ -270,7 +261,6 @@ func getIds(conn *sql.DB, filters []sql_builder.Filter) ([]int, utils.CLIError) 
 
 		if err != nil {
 			return nil, utils.CLIError{
-				Code:    utils.ErrorCodeQueryError,
 				Message: "Failed to get task id",
 				Err:     err,
 			}
@@ -291,8 +281,8 @@ func Edit(filters []sql_builder.Filter, edits []QueryEdit) ([]int, utils.CLIErro
 	conn, err := connect()
 	if err != nil {
 		return nil, utils.CLIError{
-			Code: utils.ErrorCodeQueryError,
-			Err:  err,
+			Message: "Failed to edit tasks",
+			Err:     err,
 		}
 	}
 
@@ -316,8 +306,38 @@ func Edit(filters []sql_builder.Filter, edits []QueryEdit) ([]int, utils.CLIErro
 	_, err = conn.Exec(builder.SQL(), params...)
 	if err != nil {
 		return nil, utils.CLIError{
-			Code:    utils.ErrorCodeQueryError,
 			Message: "Failed to edit tasks",
+			Err:     err,
+		}
+	}
+
+	return getIds(conn, filters)
+}
+
+func Delete(filters []sql_builder.Filter) ([]int, utils.CLIError) {
+	conn, err := connect()
+	if err != nil {
+		return nil, utils.CLIError{
+			Message: "Failed to delete tasks",
+			Err:     err,
+		}
+	}
+
+	builder := sql_builder.New().Delete("tasks")
+
+	for _, filter := range filters {
+		builder.Filter(filter)
+	}
+
+	debug := os.Getenv("DEBUG") != ""
+	if debug {
+		log.Println(builder.SQL())
+	}
+
+	_, err = conn.Exec(builder.SQL())
+	if err != nil {
+		return nil, utils.CLIError{
+			Message: "Failed to delete tasks",
 			Err:     err,
 		}
 	}
