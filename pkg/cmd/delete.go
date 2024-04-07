@@ -1,12 +1,12 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/mskelton/tsk/internal/arg_parser"
 	"github.com/mskelton/tsk/internal/printer"
 	"github.com/mskelton/tsk/internal/storage"
-	"github.com/mskelton/tsk/internal/utils"
 )
 
 func Delete(ctx arg_parser.ParseContext) {
@@ -14,22 +14,18 @@ func Delete(ctx arg_parser.ParseContext) {
 
 	filters := buildFilters(ctx)
 	count, err := storage.Count(filters)
-	if err.Message != "" {
+	if err != nil {
 		printer.Error(err)
 		return
 	}
 
 	if count == 0 {
-		printer.Error(utils.CLIError{
-			Message: "No tasks match filters",
-		})
+		printer.Error(errors.New("No tasks match filters"))
 		return
 	}
 
 	if count != 1 {
-		printer.Error(utils.CLIError{
-			Message: "Bulk delete is not supported",
-		})
+		printer.Error(errors.New("Bulk delete is not supported"))
 		return
 	}
 
@@ -38,7 +34,7 @@ func Delete(ctx arg_parser.ParseContext) {
 	}
 
 	ids, err := storage.Delete(filters)
-	if err.Message != "" {
+	if err != nil {
 		printer.Error(err)
 		return
 	}

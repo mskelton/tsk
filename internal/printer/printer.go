@@ -6,23 +6,10 @@ import (
 	"os"
 
 	"github.com/fatih/color"
-	"github.com/mskelton/tsk/internal/utils"
 )
 
-func Error(error utils.CLIError) {
-	// If no message is provided, use the error message
-	message := error.Message
-	if message == "" && error.Err != nil {
-		message = error.Err.Error()
-	}
-
-	fmt.Fprintf(os.Stderr, "%s\n", error.Message)
-
-	// If there is a detail message, print it in faint color
-	if error.Detail != "" {
-		color.New().Add(color.Faint).Println(error.Detail)
-	}
-
+func Error(err error) {
+	fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 	os.Exit(1)
 }
 

@@ -58,13 +58,10 @@ func NewTask() Task {
 	}
 }
 
-func ListTasks(filters []sql_builder.Filter) ([]Task, utils.CLIError) {
+func ListTasks(filters []sql_builder.Filter) ([]Task, error) {
 	conn, err := connect()
 	if err != nil {
-		return nil, utils.CLIError{
-			Message: "Failed to list tasks",
-			Err:     err,
-		}
+		return nil, fmt.Errorf("Failed to list tasks: %w", err)
 	}
 
 	builder := sql_builder.New().
@@ -87,10 +84,7 @@ func ListTasks(filters []sql_builder.Filter) ([]Task, utils.CLIError) {
 
 	rows, err := conn.Query(builder.SQL())
 	if err != nil {
-		return nil, utils.CLIError{
-			Message: "Failed to list tasks",
-			Err:     err,
-		}
+		return nil, fmt.Errorf("Failed to list tasks: %w", err)
 	}
 
 	var tasks []Task
@@ -103,18 +97,13 @@ func ListTasks(filters []sql_builder.Filter) ([]Task, utils.CLIError) {
 
 		err = rows.Scan(&taskId, &templateId, &shortId, &data)
 		if err != nil {
-			return nil, utils.CLIError{
-				Message: "Invalid task data",
-			}
+			return nil, fmt.Errorf("Failed to list tasks: %w", err)
 		}
 
 		var task Task
 		err = json.Unmarshal(data, &task)
 		if err != nil {
-			return nil, utils.CLIError{
-				Message: "Failed to list tasks",
-				Err:     err,
-			}
+			return nil, fmt.Errorf("Failed to list tasks: %w", err)
 		}
 
 		task.Id = taskId
@@ -130,24 +119,18 @@ func ListTasks(filters []sql_builder.Filter) ([]Task, utils.CLIError) {
 		tasks = append(tasks, task)
 	}
 
-	return tasks, utils.CLIError{}
+	return tasks, nil
 }
 
-func Add(task Task) (int64, utils.CLIError) {
+func Add(task Task) (int64, error) {
 	data, err := json.Marshal(task)
 	if err != nil {
-		return 0, utils.CLIError{
-			Message: "Failed to serialize task",
-			Err:     err,
-		}
+		return 0, fmt.Errorf("Failed to add task: %w", err)
 	}
 
 	conn, err := connect()
 	if err != nil {
-		return 0, utils.CLIError{
-			Message: "Failed to add task",
-			Err:     err,
-		}
+		return 0, fmt.Errorf("Failed to add task: %w", err)
 	}
 
 	_, err = conn.Exec(
@@ -157,10 +140,7 @@ func Add(task Task) (int64, utils.CLIError) {
 		data,
 	)
 	if err != nil {
-		return 0, utils.CLIError{
-			Message: "Failed to add task",
-			Err:     err,
-		}
+		return 0, fmt.Errorf("Failed to add task: %w", err)
 	}
 
 	// Add an id assignment for the newly created task
@@ -169,32 +149,23 @@ func Add(task Task) (int64, utils.CLIError) {
 		task.Id,
 	)
 	if err != nil {
-		return 0, utils.CLIError{
-			Message: "Failed to add task assignment",
-			Err:     err,
-		}
+		return 0, fmt.Errorf("Failed to add task assignment: %w", err)
 	}
 
 	id, err := res.LastInsertId()
 	if err != nil {
-		return 0, utils.CLIError{
-			Message: "Failed to get last insert id",
-			Err:     err,
-		}
+		return 0, fmt.Errorf("Failed to get last insert id: %w", err)
 	}
 
 	// Return the id of the newly created task. Thankfully SQLite handles this
 	// automatically with `LastInsertId()` since we are using a numeric id.
-	return id, utils.CLIError{}
+	return id, nil
 }
 
-func Count(filters []sql_builder.Filter) (int, utils.CLIError) {
+func Count(filters []sql_builder.Filter) (int, error) {
 	conn, err := connect()
 	if err != nil {
-		return 0, utils.CLIError{
-			Message: "Failed to count tasks",
-			Err:     err,
-		}
+		return 0, fmt.Errorf("Failed to count tasks: %w", err)
 	}
 
 	builder := sql_builder.New().
@@ -213,25 +184,19 @@ func Count(filters []sql_builder.Filter) (int, utils.CLIError) {
 
 	row := conn.QueryRow(builder.SQL())
 	if row.Err() != nil {
-		return 0, utils.CLIError{
-			Message: "Failed to count tasks",
-			Err:     row.Err(),
-		}
+		return 0, fmt.Errorf("Failed to count tasks: %w", row.Err())
 	}
 
 	var count int
 	err = row.Scan(&count)
 	if row.Err() != nil {
-		return 0, utils.CLIError{
-			Message: "Failed to count tasks",
-			Err:     err,
-		}
+		return 0, fmt.Errorf("Failed to count tasks: %w", row.Err())
 	}
 
-	return count, utils.CLIError{}
+	return count, nil
 }
 
-func getIds(conn *sql.DB, filters []sql_builder.Filter) ([]int, utils.CLIError) {
+func getIds(conn *sql.DB, filters []sql_builder.Filter) ([]int, error) {
 	builder := sql_builder.New().
 		Select("assignments.id").
 		From("tasks").
@@ -248,10 +213,7 @@ func getIds(conn *sql.DB, filters []sql_builder.Filter) ([]int, utils.CLIError) 
 
 	res, err := conn.Query(builder.SQL())
 	if err != nil {
-		return nil, utils.CLIError{
-			Message: "Failed to get task ids",
-			Err:     err,
-		}
+		return nil, fmt.Errorf("Failed to get task ids: %w", err)
 	}
 
 	var ids []int
@@ -260,16 +222,13 @@ func getIds(conn *sql.DB, filters []sql_builder.Filter) ([]int, utils.CLIError) 
 		err = res.Scan(&id)
 
 		if err != nil {
-			return nil, utils.CLIError{
-				Message: "Failed to get task id",
-				Err:     err,
-			}
+			return nil, fmt.Errorf("Failed to get task id: %w", err)
 		}
 
 		ids = append(ids, id)
 	}
 
-	return ids, utils.CLIError{}
+	return ids, nil
 }
 
 type QueryEdit struct {
@@ -277,13 +236,10 @@ type QueryEdit struct {
 	Value string
 }
 
-func Edit(filters []sql_builder.Filter, edits []QueryEdit) ([]int, utils.CLIError) {
+func Edit(filters []sql_builder.Filter, edits []QueryEdit) ([]int, error) {
 	conn, err := connect()
 	if err != nil {
-		return nil, utils.CLIError{
-			Message: "Failed to edit tasks",
-			Err:     err,
-		}
+		return nil, fmt.Errorf("Failed to edit tasks: %w", err)
 	}
 
 	builder := sql_builder.New().Update("tasks")
@@ -305,22 +261,16 @@ func Edit(filters []sql_builder.Filter, edits []QueryEdit) ([]int, utils.CLIErro
 
 	_, err = conn.Exec(builder.SQL(), params...)
 	if err != nil {
-		return nil, utils.CLIError{
-			Message: "Failed to edit tasks",
-			Err:     err,
-		}
+		return nil, fmt.Errorf("Failed to edit tasks: %w", err)
 	}
 
 	return getIds(conn, filters)
 }
 
-func Delete(filters []sql_builder.Filter) ([]int, utils.CLIError) {
+func Delete(filters []sql_builder.Filter) ([]int, error) {
 	conn, err := connect()
 	if err != nil {
-		return nil, utils.CLIError{
-			Message: "Failed to delete tasks",
-			Err:     err,
-		}
+		return nil, fmt.Errorf("Failed to delete tasks: %w", err)
 	}
 
 	builder := sql_builder.New().Delete("tasks")
@@ -336,10 +286,7 @@ func Delete(filters []sql_builder.Filter) ([]int, utils.CLIError) {
 
 	_, err = conn.Exec(builder.SQL())
 	if err != nil {
-		return nil, utils.CLIError{
-			Message: "Failed to delete tasks",
-			Err:     err,
-		}
+		return nil, fmt.Errorf("Failed to delete tasks: %w", err)
 	}
 
 	return getIds(conn, filters)

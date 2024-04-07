@@ -8,14 +8,11 @@ import (
 	"github.com/mskelton/tsk/internal/arg_parser"
 	"github.com/mskelton/tsk/internal/printer"
 	"github.com/mskelton/tsk/internal/sql_builder"
-	"github.com/mskelton/tsk/internal/utils"
 )
 
 func requireFilters(ctx arg_parser.ParseContext, command string) {
 	if len(ctx.Filters) == 0 {
-		printer.Error(utils.CLIError{
-			Message: fmt.Sprintf("The %s command requires filters", command),
-		})
+		printer.Error(fmt.Errorf("The %s command requires filters", command))
 	}
 }
 

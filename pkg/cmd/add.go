@@ -1,12 +1,12 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/mskelton/tsk/internal/arg_parser"
 	"github.com/mskelton/tsk/internal/printer"
 	"github.com/mskelton/tsk/internal/storage"
-	"github.com/mskelton/tsk/internal/utils"
 )
 
 func Add(ctx arg_parser.ParseContext) {
@@ -22,21 +22,17 @@ func Add(ctx arg_parser.ParseContext) {
 			if v.Scope == arg_parser.ScopePriority {
 				task.Priority = v.Value
 			} else {
-				printer.Error(utils.CLIError{
-					Message: fmt.Sprintf("Missing value for \"%s:\"", v.Scope),
-				})
+				printer.Error(fmt.Errorf("Missing value for \"%s:\"", v.Scope))
 			}
 		}
 	}
 
 	if task.Title == "" {
-		printer.Error(utils.CLIError{
-			Message: "Missing title",
-		})
+		printer.Error(errors.New("Missing title"))
 	}
 
 	id, err := storage.Add(task)
-	if err.Message != "" {
+	if err != nil {
 		printer.Error(err)
 	}
 

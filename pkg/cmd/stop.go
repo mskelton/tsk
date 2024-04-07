@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/mskelton/tsk/internal/arg_parser"
@@ -14,15 +15,13 @@ func Stop(ctx arg_parser.ParseContext) {
 
 	filters := buildFilters(ctx)
 	count, err := storage.Count(filters)
-	if err.Message != "" {
+	if err != nil {
 		printer.Error(err)
 		return
 	}
 
 	if count == 0 {
-		printer.Error(utils.CLIError{
-			Message: "No tasks match filters",
-		})
+		printer.Error(errors.New("No tasks match filters"))
 		return
 	}
 
@@ -42,7 +41,7 @@ func Stop(ctx arg_parser.ParseContext) {
 	}}
 
 	ids, err := storage.Edit(filters, edits)
-	if err.Message != "" {
+	if err != nil {
 		printer.Error(err)
 		return
 	}
